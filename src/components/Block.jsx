@@ -1,122 +1,167 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 
 export default function Block({ block, onUpdate, onDelete, dragHandleProps }) {
-  const [editing, setEditing] = useState(false)
+  const [editingTitle, setEditingTitle] = useState(false)
   const [title, setTitle] = useState(block.title || '')
-  const holdTimer = useRef(null)
-  const lastTap = useRef(0)
+  const [editingLeft, setEditingLeft] = useState(false)
+  const [editingRight, setEditingRight] = useState(false)
+
+  const holdTimeout = useRef(null)
+  const holdInterval = useRef(null)
+  const holdStarted = useRef(false)
+
+  // Refs per valori aggiornati
+  const leftRef = useRef(block.left)
+  const rightRef = useRef(block.right)
+  useEffect(() => { leftRef.current = block.left }, [block.left])
+  useEffect(() => { rightRef.current = block.right }, [block.right])
 
   const commitTitle = () => {
-    setEditing(false)
+    setEditingTitle(false)
     onUpdate({ ...block, title: title || 'Giocatore' })
   }
 
-  // Update helper
   const update = (changes) => onUpdate({ ...block, ...changes })
 
-  // Touch/Pointer handling: long press -> +5 on the counter you touched,
-  // double tap -> reset both.
-  const onPointerDown = (side) => (e) => {
-    // double tap
-    const now = Date.now()
-    if (now - lastTap.current < 300) {
-      // double tap detected: reset both
-      update({ left: 0, right: 0 })
-      lastTap.current = 0
-      return
-    }
-    lastTap.current = now
-
-    // start hold timer
-    holdTimer.current = setTimeout(() => {
-      if (side === 'left') update({ left: block.left + 5 })
-      else update({ right: block.right + 5 })
-      holdTimer.current = null
-    }, 500) // hold threshold 500ms
+  // Gestione press-and-hold
+  const startHold = (side, delta) => {
+    holdStarted.current = false
+    holdTimeout.current = setTimeout(() => {
+      holdStarted.current = true
+      holdInterval.current = setInterval(() => {
+        const step = delta * 5
+        if (side === 'left') update({ left: leftRef.current + step })
+        else update({ right: rightRef.current + step })
+      }, 500)
+    }, 500)
   }
 
-  const onPointerUp = () => {
-    if (holdTimer.current) {
-      clearTimeout(holdTimer.current)
-      holdTimer.current = null
+  const stopHold = () => {
+    clearTimeout(holdTimeout.current)
+    clearInterval(holdInterval.current)
+  }
+
+  const handleClick = (side, delta) => {
+    if (holdStarted.current) {
+      holdStarted.current = false
+      return
+    }
+    // click singolo incrementa solo di 1
+    if (side === 'left') update({ left: leftRef.current + delta })
+    else update({ right: rightRef.current + delta })
+  }
+
+  const handleManualInput = (side, value) => {
+    const num = parseInt(value, 10)
+    if (!isNaN(num)) {
+      if (side === 'left') update({ left: num })
+      else update({ right: num })
     }
   }
 
   return (
-    <div className="p-3 bg-gradient-to-br from-white/80 to-white/60 dark:from-[#1b1216]/80 dark:to-[#2a1b24]/80 rounded-lg shadow-ornate border border-dnd-brown/20">
-      <div className="flex justify-between items-center gap-2">
-        <div className="flex items-center gap-2">
-          <div {...dragHandleProps} className="cursor-grab select-none px-2 py-1 rounded bg-dnd-brown/10 text-sm">≡</div>
-          {editing ? (
+    <div className="p-4 bg-white dark:bg-[#2c2c2c] rounded-3xl shadow-lg border border-gray-200 dark:border-gray-700">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-3">
+          <div {...dragHandleProps} className="cursor-grab px-2 py-1 rounded bg-gray-300 dark:bg-gray-600 text-sm select-none">≡</div>
+          {editingTitle ? (
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={commitTitle}
               onKeyDown={(e) => e.key === 'Enter' && commitTitle()}
-              className="text-lg font-semibold bg-transparent border-b border-dnd-gold/30 focus:outline-none"
+              className="text-lg font-semibold bg-transparent border-b border-gray-400 dark:border-gray-500 focus:outline-none"
             />
           ) : (
-            <div onDoubleClick={() => setEditing(true)} className="text-lg font-semibold font-fantasy text-dnd-brown dark:text-dnd-gold">
+            <div
+              onDoubleClick={() => setEditingTitle(true)}
+              className="text-lg font-semibold font-fantasy text-gray-800 dark:text-gray-100 select-none"
+            >
               {block.title || 'Giocatore'}
             </div>
           )}
         </div>
-
-        <div className="flex gap-2">
-          <button onClick={() => onDelete(block.id)} className="text-xs px-2 py-1 rounded bg-red-600 text-white">Elimina</button>
-        </div>
+        <button
+          onClick={() => onDelete(block.id)}
+          className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+        >
+          Elimina
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mt-3">
+      {/* Contatori */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* Sinistra */}
         <div className="flex flex-col items-center">
-          <div className="text-3xl font-bold">{block.left}</div>
-          <div className="flex gap-2 mt-2">
+          {editingLeft ? (
+            <input
+              type="number"
+              defaultValue={block.left}
+              autoFocus
+              onBlur={(e) => { handleManualInput('left', e.target.value); setEditingLeft(false) }}
+              onKeyDown={(e) => { if(e.key==='Enter'){ handleManualInput('left', e.target.value); setEditingLeft(false)}}}
+              className="text-4xl font-bold text-center bg-gray-100 dark:bg-gray-800 rounded-lg w-20 border border-gray-300 dark:border-gray-600"
+            />
+          ) : (
+            <div
+              onDoubleClick={() => setEditingLeft(true)}
+              className="text-4xl font-bold cursor-pointer select-none text-gray-900 dark:text-gray-100"
+            >
+              {block.left}
+            </div>
+          )}
+          <div className="flex gap-3 mt-3">
             <button
-              onPointerDown={onPointerDown('left')}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              onClick={() => update({ left: block.left - 1 })}
-              className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 active:scale-95"
+              onPointerDown={() => startHold('left', -1)}
+              onPointerUp={stopHold} onPointerLeave={stopHold} onPointerCancel={stopHold}
+              onClick={() => handleClick('left', -1)}
+              className="w-12 h-12 rounded-full bg-red-300 dark:bg-red-600 text-xl font-bold flex items-center justify-center hover:bg-red-400 dark:hover:bg-red-500 active:scale-95 transition"
             >−</button>
-
             <button
-              onPointerDown={onPointerDown('left')}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              onClick={() => update({ left: block.left + 1 })}
-              className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 active:scale-95"
+              onPointerDown={() => startHold('left', +1)}
+              onPointerUp={stopHold} onPointerLeave={stopHold} onPointerCancel={stopHold}
+              onClick={() => handleClick('left', +1)}
+              className="w-12 h-12 rounded-full bg-green-300 dark:bg-green-600 text-xl font-bold flex items-center justify-center hover:bg-green-400 dark:hover:bg-green-500 active:scale-95 transition"
             >+</button>
           </div>
         </div>
 
+        {/* Destra */}
         <div className="flex flex-col items-center">
-          <div className="text-3xl font-bold">{block.right}</div>
-          <div className="flex gap-2 mt-2">
+          {editingRight ? (
+            <input
+              type="number"
+              defaultValue={block.right}
+              autoFocus
+              onBlur={(e) => { handleManualInput('right', e.target.value); setEditingRight(false) }}
+              onKeyDown={(e) => { if(e.key==='Enter'){ handleManualInput('right', e.target.value); setEditingRight(false)}}}
+              className="text-4xl font-bold text-center bg-gray-100 dark:bg-gray-800 rounded-lg w-20 border border-gray-300 dark:border-gray-600"
+            />
+          ) : (
+            <div
+              onDoubleClick={() => setEditingRight(true)}
+              className="text-4xl font-bold cursor-pointer select-none text-gray-900 dark:text-gray-100"
+            >
+              {block.right}
+            </div>
+          )}
+          <div className="flex gap-3 mt-3">
             <button
-              onPointerDown={onPointerDown('right')}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              onClick={() => update({ right: block.right - 1 })}
-              className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 active:scale-95"
+              onPointerDown={() => startHold('right', -1)}
+              onPointerUp={stopHold} onPointerLeave={stopHold} onPointerCancel={stopHold}
+              onClick={() => handleClick('right', -1)}
+              className="w-12 h-12 rounded-full bg-red-300 dark:bg-red-600 text-xl font-bold flex items-center justify-center hover:bg-red-400 dark:hover:bg-red-500 active:scale-95 transition"
             >−</button>
-
             <button
-              onPointerDown={onPointerDown('right')}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              onClick={() => update({ right: block.right + 1 })}
-              className="px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 active:scale-95"
+              onPointerDown={() => startHold('right', +1)}
+              onPointerUp={stopHold} onPointerLeave={stopHold} onPointerCancel={stopHold}
+              onClick={() => handleClick('right', +1)}
+              className="w-12 h-12 rounded-full bg-green-300 dark:bg-green-600 text-xl font-bold flex items-center justify-center hover:bg-green-400 dark:hover:bg-green-500 active:scale-95 transition"
             >+</button>
           </div>
         </div>
       </div>
-
-      <div className="flex gap-2 mt-3">
-        <button onClick={() => update({ left:0, right:0 })} className="flex-1 py-1 rounded border">Reset</button>
-        <button onClick={() => update({ left: block.left + 1, right: block.right + 1 })} className="flex-1 py-1 rounded border">+ Entrambi</button>
-      </div>
-
-      <div className="mt-2 text-xs text-gray-500">Doppio tap = reset, tieni premuto per +5</div>
     </div>
   )
 }
