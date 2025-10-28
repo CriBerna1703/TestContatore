@@ -1,0 +1,21 @@
+{
+  "name": "Contatore Gioco",
+  "short_name": "Contatore",
+  "description": "Una semplice app per contare i punteggi di gioco",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/TestContatore/pwa-192.png",
+      "sizes": "40x41",
+      "type": "image/png"
+    },
+    {
+      "src": "/TestContatore/pwa-512.png",
+      "sizes": "40x41",
+      "type": "image/png"
+    }
+  ]
+}
