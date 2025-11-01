@@ -7,7 +7,7 @@ export default function Block({ block, onUpdate, onDelete, dragHandleProps }) {
   const [editingLeft, setEditingLeft] = useState(false)
   const [editingRight, setEditingRight] = useState(false)
   const [showExtrasOnly, setShowExtrasOnly] = useState(false)
-  const [buttonsState, setButtonsState] = useState([false, false, false, false])
+  const [buttonsState, setButtonsState] = useState(block.buttonsState || [false, false, false, false])
 
   const holdTimeout = useRef(null)
   const holdInterval = useRef(null)
@@ -24,19 +24,25 @@ export default function Block({ block, onUpdate, onDelete, dragHandleProps }) {
 
   const startHold = (side, delta) => {
     holdStarted.current = false
+
     holdTimeout.current = setTimeout(() => {
       holdStarted.current = true
       holdInterval.current = setInterval(() => {
-        if (side === 'left') update({ left: block.left + delta * 5 })
-        else if (side === 'right') update({ right: block.right + delta * 5 })
-      }, 150)
+        onUpdate(prev => {
+          if (prev.id !== block.id) return prev
+          const key = side === 'left' ? 'left' : 'right'
+          return { ...prev, [key]: (prev[key] ?? 0) + delta * 5 }
+        })
+      }, 500)
     }, 500)
   }
+
 
   const stopHold = () => {
     clearTimeout(holdTimeout.current)
     clearInterval(holdInterval.current)
   }
+
 
   const handleClick = (side, delta) => {
     if (holdStarted.current) {
@@ -56,7 +62,9 @@ export default function Block({ block, onUpdate, onDelete, dragHandleProps }) {
     const newState = [...buttonsState]
     newState[i] = !newState[i]
     setButtonsState(newState)
+    onUpdate({ ...block, buttonsState: newState })
   }
+
 
   return (
     <motion.div
