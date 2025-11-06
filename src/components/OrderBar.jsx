@@ -27,13 +27,7 @@ export default function OrderBar({ blocks }) {
     >
       {sorted.map((b, idx) => (
         <React.Fragment key={b.id}>
-          <motion.div
-            layout
-            className="px-3 py-1 bg-white dark:bg-neutral-800 rounded-lg shadow text-sm font-semibold text-gray-800 dark:text-gray-100 whitespace-nowrap"
-            whileHover={{ scale: 1.05 }}
-          >
-            {b.title}
-          </motion.div>
+          {b.title}
           {idx < sorted.length - 1 && (
             <span className="text-gray-500 dark:text-gray-400">→</span>
           )}
