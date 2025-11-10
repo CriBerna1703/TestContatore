@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-//import './Block.css'
 
 export default function Block({ block, onUpdate, onDelete }) {
   const [editingTitle, setEditingTitle] = useState(false)
@@ -16,14 +15,13 @@ export default function Block({ block, onUpdate, onDelete }) {
 
   const update = (changes) => onUpdate({ ...block, ...changes })
 
-  const startHold = (side, delta) => {
+  const startHold = (key, delta) => {
     holdStarted.current = false
     holdTimeout.current = setTimeout(() => {
       holdStarted.current = true
       holdInterval.current = setInterval(() => {
         onUpdate(prev => {
           if (prev.id !== block.id) return prev
-          const key = side
           return { ...prev, [key]: (prev[key] ?? 0) + delta * 5 }
         })
       }, 500)
@@ -35,12 +33,12 @@ export default function Block({ block, onUpdate, onDelete }) {
     clearInterval(holdInterval.current)
   }
 
-  const handleClick = (side, delta) => {
+  const handleClick = (key, delta) => {
     if (holdStarted.current) {
       holdStarted.current = false
       return
     }
-    update({ [side]: (block[side] ?? 0) + delta })
+    update({ [key]: (block[key] ?? 0) + delta })
   }
 
   const toggleButton = (i) => {
@@ -50,18 +48,26 @@ export default function Block({ block, onUpdate, onDelete }) {
     update({ buttonsState: newState })
   }
 
-  const updateExtra = (i, delta) => {
-    const key = `extra${i}`
-    update({ [key]: (block[key] ?? 0) + delta })
-  }
-
   const commitTitle = () => {
     setEditingTitle(false)
     update({ title: title || 'Giocatore' })
   }
 
+  // Nomi dei contatori centrali
+  const mainCounterNames = ['Contatore 1', 'Contatore 2']
+  // Nomi degli extra
+  const extraNames = ['Extra 1', 'Extra 2', 'Extra 3']
+
   return (
-    <motion.div layout className="block-container">
+    <motion.div
+      layout
+      className="block-container"
+      onClick={(e) => {
+        if (showExtrasOnly && e.target.tagName !== 'BUTTON') {
+          setShowExtrasOnly(false)
+        }
+      }}
+    >
       {/* HEADER */}
       <div className="block-header">
         {editingTitle ? (
@@ -86,7 +92,7 @@ export default function Block({ block, onUpdate, onDelete }) {
         </button>
       </div>
 
-      {/* EXTRA MINI */}
+      {/* MINI EXTRAS */}
       {!showExtrasOnly && (
         <div className="extras-mini" onClick={() => setShowExtrasOnly(true)}>
           {[extra1, extra2, extra3].map((v, i) => (
@@ -105,51 +111,34 @@ export default function Block({ block, onUpdate, onDelete }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="flex"
+              className="main-counters"
             >
-              <div className="counter">
-                <button
-                  onPointerDown={() => startHold('left', -1)}
-                  onPointerUp={stopHold}
-                  onPointerLeave={stopHold}
-                  onClick={() => handleClick('left', -1)}
-                  className="counter-btn"
-                >
-                  −
-                </button>
-                <div className="counter-value">{left}</div>
-                <button
-                  onPointerDown={() => startHold('left', +1)}
-                  onPointerUp={stopHold}
-                  onPointerLeave={stopHold}
-                  onClick={() => handleClick('left', +1)}
-                  className="counter-btn"
-                >
-                  +
-                </button>
-              </div>
-
-              <div className="counter">
-                <button
-                  onPointerDown={() => startHold('right', -1)}
-                  onPointerUp={stopHold}
-                  onPointerLeave={stopHold}
-                  onClick={() => handleClick('right', -1)}
-                  className="counter-btn"
-                >
-                  −
-                </button>
-                <div className="counter-value">{right}</div>
-                <button
-                  onPointerDown={() => startHold('right', +1)}
-                  onPointerUp={stopHold}
-                  onPointerLeave={stopHold}
-                  onClick={() => handleClick('right', +1)}
-                  className="counter-btn"
-                >
-                  +
-                </button>
-              </div>
+              {['left', 'right'].map((key, i) => (
+                <div key={key} className="counter-box">
+                  <div className="smart-counter">
+                    <div
+                      className="counter-half left-half"
+                      onPointerDown={() => startHold(key, -1)}
+                      onPointerUp={stopHold}
+                      onPointerLeave={stopHold}
+                      onClick={(e) => { e.stopPropagation(); handleClick(key, -1) }}
+                    >
+                      <span>−</span>
+                    </div>
+                    <div className="counter-value">{block[key]}</div>
+                    <div
+                      className="counter-half right-half"
+                      onPointerDown={() => startHold(key, +1)}
+                      onPointerUp={stopHold}
+                      onPointerLeave={stopHold}
+                      onClick={(e) => { e.stopPropagation(); handleClick(key, +1) }}
+                    >
+                      <span>＋</span>
+                    </div>
+                  </div>
+                  <div className="counter-label">{mainCounterNames[i]}</div>
+                </div>
+              ))}
             </motion.div>
           ) : (
             <motion.div
@@ -160,27 +149,35 @@ export default function Block({ block, onUpdate, onDelete }) {
               transition={{ duration: 0.3 }}
               className="extras-expanded"
             >
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="extra-box">
-                  <div className="value">{block[`extra${i}`] ?? 0}</div>
-                  <div className="buttons">
-                    <button onClick={() => updateExtra(i, -1)}>−</button>
-                    <button onClick={() => updateExtra(i, +1)}>+</button>
+              {[1, 2, 3].map((i) => {
+                const key = `extra${i}`
+                return (
+                  <div key={key} className="counter-box">
+                    <div className="smart-counter extra-version">
+                      <div
+                        className="counter-half left-half"
+                        onClick={(e) => { e.stopPropagation(); handleClick(key, -1) }}
+                      >
+                        <span>−</span>
+                      </div>
+                      <div className="counter-value">{block[key]}</div>
+                      <div
+                        className="counter-half right-half"
+                      onClick={(e) => { e.stopPropagation(); handleClick(key, +1) }}
+                      >
+                        <span>＋</span>
+                      </div>
+                    </div>
+                    <div className="counter-label">{extraNames[i-1]}</div>
                   </div>
-                </div>
-              ))}
-              <button
-                onClick={() => setShowExtrasOnly(false)}
-                className="return-extras"
-              >
-                Torna
-              </button>
+                )
+              })}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* 4 BOTTONI INFERIORI */}
+      {/* BOTTONI INFERIORI */}
       {!showExtrasOnly && (
         <div className="image-buttons">
           {buttonsState.map((active, i) => (

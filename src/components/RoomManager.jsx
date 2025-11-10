@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import './RoomManager.css'
 
-export default function RoomManager({ rooms, onLoadRoom }) {
-  const [showModal, setShowModal] = useState(false)
+export default function RoomManager({ rooms, onLoadRoom, open, onClose }) {
   const [selectedRoom, setSelectedRoom] = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
-  const handleClick = (room) => {
+  const handleRoomClick = (room) => {
     setSelectedRoom(room)
     setShowModal(true)
   }
@@ -13,55 +14,72 @@ export default function RoomManager({ rooms, onLoadRoom }) {
   const confirmLoad = () => {
     onLoadRoom(selectedRoom)
     setShowModal(false)
-    setSelectedRoom(null)
+    onClose()
   }
 
   return (
-    <div className="bg-white/80 dark:bg-neutral-800/80 rounded-xl p-3 shadow-md mb-4">
-      <h2 className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-200">
-        Stanze predefinite
-      </h2>
-
-      <div className="flex flex-wrap gap-2">
-        {rooms.map((r) => (
-          <div
-            key={r.name}
-            onClick={() => handleClick(r)}
-            className="px-3 py-1 rounded-lg bg-gray-100 dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-600 cursor-pointer transition"
+    <>
+      <AnimatePresence>
+        {open && (
+          <motion.aside
+            className="room-sidebar"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 250, damping: 25 }}
           >
-            {r.name}
-          </div>
-        ))}
-      </div>
+            <div className="room-header">
+              <span>Stanze</span>
+              <button className="room-close" onClick={onClose}>
+                ✕
+              </button>
+            </div>
 
+            <div className="room-list">
+              {rooms.map((r) => (
+                <div
+                  key={r.name}
+                  className="room-item"
+                  onClick={() => handleRoomClick(r)}
+                >
+                  {r.name}
+                </div>
+              ))}
+            </div>
+
+            <div className="room-footer">Scorekeeper © 2025</div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Conferma caricamento stanza */}
       <AnimatePresence>
         {showModal && (
           <motion.div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            className="room-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white dark:bg-neutral-800 p-6 rounded-xl shadow-lg"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              className="room-modal"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
             >
-              <h3 className="text-lg font-semibold mb-2">
-                Sostituire l’attuale configurazione con "{selectedRoom?.name}"?
+              <h3>
+                Sostituire la configurazione attuale con
+                <br />
+                “{selectedRoom?.name}”?
               </h3>
-              <div className="flex justify-end gap-2">
+              <div className="room-modal-buttons">
                 <button
+                  className="room-cancel"
                   onClick={() => setShowModal(false)}
-                  className="px-3 py-1 rounded bg-gray-300 dark:bg-neutral-700"
                 >
                   Annulla
                 </button>
-                <button
-                  onClick={confirmLoad}
-                  className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
-                >
+                <button className="room-confirm" onClick={confirmLoad}>
                   Conferma
                 </button>
               </div>
@@ -69,6 +87,6 @@ export default function RoomManager({ rooms, onLoadRoom }) {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }

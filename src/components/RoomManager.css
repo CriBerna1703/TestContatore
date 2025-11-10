@@ -1,0 +1,141 @@
+/* ================================
+   SIDEBAR CONTAINER
+================================ */
+.room-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 280px;
+  background: #fffdf8;
+  border-right: 2px solid #d8c89b;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  transition: transform 0.3s ease;
+}
+
+.room-sidebar.dark {
+  background: #1e1e1e;
+  border-right-color: #444;
+}
+
+/* ================================
+   HEADER
+================================ */
+.room-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #e2d2a0;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #7a4e00;
+}
+
+.room-close {
+  border: none;
+  background: transparent;
+  color: #7a4e00;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.room-close:hover {
+  color: #b22a2a;
+}
+
+/* ================================
+   ROOM LIST
+================================ */
+.room-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.room-item {
+  background-color: #f9f1d9;
+  border-radius: 10px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  color: #3b250b;
+}
+
+.room-item:hover {
+  background-color: #f0e1b8;
+  transform: scale(1.02);
+}
+
+/* ================================
+   FOOTER
+================================ */
+.room-footer {
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #8b7a4e;
+  border-top: 1px solid #e2d2a0;
+}
+
+/* ================================
+   CONFIRM MODAL
+================================ */
+.room-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.room-modal {
+  background: #fffdf8;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  max-width: 320px;
+  text-align: center;
+}
+
+.room-modal h3 {
+  font-family: 'Cinzel', serif;
+  color: #4a3108;
+  margin-bottom: 1rem;
+}
+
+.room-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.room-modal-buttons button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.room-cancel {
+  background: #e8d6b1;
+}
+
+.room-confirm {
+  background: #b22a2a;
+  color: white;
+}
+
+.room-confirm:hover {
+  background: #d33a3a;
+}

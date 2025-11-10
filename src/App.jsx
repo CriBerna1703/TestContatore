@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import useLocalStorage from './hooks/useLocalStorage'
 import TabBar from './components/TabBar'
 import Block from './components/Block'
@@ -19,6 +19,7 @@ function uid() {
 export default function App() {
   const [tabs, setTabs] = useLocalStorage('scorekeeper:tabs', initialTabs)
   const [active, setActive] = useLocalStorage('scorekeeper:active', 0)
+  const [showRooms, setShowRooms] = useState(false)
 
   const addBlockInSlot = (slotIndex) => {
     const newBlock = {
@@ -67,13 +68,39 @@ export default function App() {
     (a, b) => (a.slot ?? 0) - (b.slot ?? 0)
   )
 
+  const handleLoadRoom = (room) => {
+    const newTabs = tabs.map((t, i) =>
+      i === 1 ? { ...t, blocks: room.blocks.map((b) => ({ ...b })) } : t
+    )
+    setTabs(newTabs)
+  }
+
   return (
     <div id="root-app">
+      {active === 1 && (
+        <button onClick={() => setShowRooms(true)} className="menu-button">
+          ☰
+        </button>
+      )}
+
+      {active === 1 && (
+        <RoomManager
+          rooms={rooms}
+          onLoadRoom={handleLoadRoom}
+          open={showRooms}
+          onClose={() => setShowRooms(false)}
+        />
+      )}
+
       <header className="app-header">
         <h1 className="app-title">Scorekeeper</h1>
       </header>
 
-      <TabBar tabs={tabs.map((t) => t.name)} active={active} setActive={setActive} />
+      <TabBar
+        tabs={tabs.map((t) => t.name)}
+        active={active}
+        setActive={setActive}
+      />
 
       <OrderBar
         blocks={tabs.flatMap((t) =>
@@ -81,23 +108,14 @@ export default function App() {
         )}
       />
 
-      {active === 1 && (
-        <RoomManager
-          rooms={rooms}
-          onLoadRoom={(room) => {
-            const newTabs = tabs.map((t, i) =>
-              i === 1 ? { ...t, blocks: room.blocks.map(b => ({ ...b })) } : t
-            )
-            setTabs(newTabs)
-          }}
-        />
-      )}
-
       <div className="blocks-grid">
         {Array.from({ length: 4 }).map((_, i) => {
-          const block = orderedBlocks.find(b => b.slot === i)
+          const block = orderedBlocks.find((b) => b.slot === i)
           return (
-            <div key={i} className="block-slot">
+            <div
+              key={block ? `${active}-${block.id}` : `empty-${i}`}
+              className="block-slot"
+            >
               {block ? (
                 <Block
                   block={block}
