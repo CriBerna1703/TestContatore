@@ -1,0 +1,42 @@
+.tabbar-container {
+  display: flex;
+  gap: 2px;
+  padding: 4px 6px 0 6px;
+  border-bottom: 1px solid burlywood;
+  user-select: none;
+}
+
+/* Tab generico */
+.tab-item {
+  padding: 6px 14px;
+  background: burlywood;
+  border: 1px solid rgb(177, 147, 108);
+  border-bottom: none;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #4a2c0a;
+  transition: background 0.15s ease, color 0.15s ease;
+  
+  /* Simula sovrapposizione come tab di Chrome */
+  position: relative;
+  top: 1px;
+}
+
+.tab-item:hover {
+  background: #f2ece2;
+}
+
+/* Tab attivo stile Chrome */
+.tab-item.active {
+  background: #fff3da;
+  color: #000;
+  border-color: burlywood;
+  z-index: 2;
+}
+
+/* Per far sembrare che il tab attivo sia "collegato" al contenuto sottostante */
+.tab-item.active {
+  padding-bottom: 7px;
+}

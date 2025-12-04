@@ -137,3 +137,18 @@
 .menu-button:hover {
   background-color: rgb(214, 159, 86);
 }
+
+/* ============================
+   CONTENITORE SOTTO I TAB
+=============================== */
+.tab-content-wrapper {
+  background: #fff3da;
+  border-top: none;              /* il tab attivo fa da bordo superiore */
+  border-radius: 0 8px 8px 8px;  /* angoli come una scheda del browser */
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-color: burlywood;
+}

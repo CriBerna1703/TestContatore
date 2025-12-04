@@ -8,8 +8,8 @@ import { rooms } from './rooms'
 import './App.css'
 
 const initialTabs = [
-  { id: 'tab-1', name: 'Tab 1', blocks: [] },
-  { id: 'tab-2', name: 'Tab 2', blocks: [] }
+  { id: 'tab-1', name: 'Eroi', blocks: [] },
+  { id: 'tab-2', name: 'Nemici', blocks: [] }
 ]
 
 function uid() {
@@ -96,44 +96,48 @@ export default function App() {
         <h1 className="app-title">Scorekeeper</h1>
       </header>
 
-      <TabBar
-        tabs={tabs.map((t) => t.name)}
-        active={active}
-        setActive={setActive}
-      />
-
       <OrderBar
         blocks={tabs.flatMap((t) =>
           t.blocks.map((b) => ({ ...b, tabName: t.name }))
         )}
       />
 
-      <div className="blocks-grid">
-        {Array.from({ length: 4 }).map((_, i) => {
-          const block = orderedBlocks.find((b) => b.slot === i)
-          return (
-            <div
-              key={block ? `${active}-${block.id}` : `empty-${i}`}
-              className="block-slot"
-            >
-              {block ? (
-                <Block
-                  block={block}
-                  onUpdate={updateBlock}
-                  onDelete={deleteBlock}
-                />
-              ) : (
-                <button
-                  onClick={() => addBlockInSlot(i)}
-                  className="empty-slot"
-                >
-                  ＋
-                </button>
-              )}
-            </div>
-          )
-        })}
+      <TabBar
+        tabs={tabs.map((t) => t.name)}
+        active={active}
+        setActive={setActive}
+      />
+
+      <div className="tab-content-wrapper">
+
+        <div className="blocks-grid">
+          {Array.from({ length: 4 }).map((_, i) => {
+            const block = orderedBlocks.find((b) => b.slot === i)
+            return (
+              <div
+                key={block ? `${active}-${block.id}` : `empty-${i}`}
+                className="block-slot"
+              >
+                {block ? (
+                  <Block
+                    block={block}
+                    onUpdate={updateBlock}
+                    onDelete={deleteBlock}
+                  />
+                ) : (
+                  <button
+                    onClick={() => addBlockInSlot(i)}
+                    className="empty-slot"
+                  >
+                    ＋
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
+
     </div>
   )
 }

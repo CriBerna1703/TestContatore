@@ -8,7 +8,7 @@ html, body, #root {
 
 body {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background-color: #f4efe8;
+  background-color: moccasin;
   color: #2e1f0f;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
